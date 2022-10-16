@@ -16,26 +16,12 @@ pub struct uSWID<'a> {
     payload: &'a [u8],
 }
 
-struct uSWIDData {
-    data: Vec<u8>,
-}
-
-use rustc_serialize::{Decodable, Decoder, Encodable, Encoder};
-impl Decodable for uSWIDData {
-    fn decode<D: Decoder>(d: &mut D) -> Result<uSWIDData, D::Error> {
-        // Read the tag number and throw it away. YOU MUST DO THIS!
-        d.read_u8();
-        // The *next* data item is the actual data.
-        Ok(uSWIDData {
-            data: Decodable::decode(d).unwrap_or_default(),
-        })
-    }
-}
+use serde_cbor::from_slice;
+use std::collections::BTreeMap;
 
 impl<'a> fmt::Display for uSWID<'a> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let mut d = cbor::Decoder::from_reader(self.payload);
-        let items: Vec<(u8, Vec<u8>)> = d.decode().collect::<Result<_, _>>().unwrap();
+        let items: BTreeMap<u8, Vec<u8>> = from_slice(self.payload).unwrap();
 
         write!(
             f,

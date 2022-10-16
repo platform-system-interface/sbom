@@ -20,6 +20,7 @@ go run ./cmds/goswid path/to/firmware.bin
 
 <details>
   <summary>Example output</summary>
+
 ```
 magic 53424f4dd6ba2eaca3e67a52aaee3baf at: 2673e0
 uswid:
@@ -302,6 +303,7 @@ cargo run path/to/firmware.bin
 
 <details>
   <summary>Example output</summary>
+
 ```
 ../sbom/firmware.bin
 SBOM found at 2673e0

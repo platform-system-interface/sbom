@@ -16,11 +16,30 @@ pub struct uSWID<'a> {
     payload: &'a [u8],
 }
 
+struct uSWIDData {
+    data: Vec<u8>,
+}
+
+use rustc_serialize::{Decodable, Decoder, Encodable, Encoder};
+impl Decodable for uSWIDData {
+    fn decode<D: Decoder>(d: &mut D) -> Result<uSWIDData, D::Error> {
+        // Read the tag number and throw it away. YOU MUST DO THIS!
+        d.read_u8();
+        // The *next* data item is the actual data.
+        Ok(uSWIDData {
+            data: Decodable::decode(d).unwrap_or_default(),
+        })
+    }
+}
+
 impl<'a> fmt::Display for uSWID<'a> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let mut d = cbor::Decoder::from_reader(self.payload);
+        let items: Vec<(u8, Vec<u8>)> = d.decode().collect::<Result<_, _>>().unwrap();
+
         write!(
             f,
-            "Magic: {} ({:x?})\n  Version: {}\n  Header size: {}\n  Payload size: {}\nPayload start/end: {:02x?}{:02x?}",
+            "Magic: {} ({:x?})\n  Version: {}\n  Header size: {}\n  Payload size: {}\nPayload start/end: {:02x?}{:02x?}\n  {:?}",
             std::str::from_utf8(&self.magic[..4]).expect(""),
             self.magic,
             self.header_ver,
@@ -28,6 +47,7 @@ impl<'a> fmt::Display for uSWID<'a> {
             self.payload_size,
             &self.payload[..4],
             &self.payload[self.payload_size as usize-4..self.payload_size as usize],
+            items
         )
     }
 }

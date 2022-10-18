@@ -6,18 +6,18 @@ const MAGIC: [u8; 16] = [
     0xA3, 0xE6, 0x7A, 0x52, 0xAA, 0xEE, 0x3B, 0xAF, //
 ];
 
-#[derive(Copy, Clone, Debug)]
+#[derive(Clone, Debug)]
 #[allow(non_camel_case_types)]
-pub struct uSWID<'a> {
+pub struct uSWID {
     magic: [u8; 16],
     header_ver: u8,
     header_size: u16,
     payload_size: u16,
-    payload: &'a [u8],
+    payload: Vec<u8>,
 }
 
-impl<'a> fmt::Display for uSWID<'a> {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+impl fmt::Display for uSWID {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(
             f,
             "Magic: {} ({:x?})\n  Version: {}\n  Header size: {}\n  Payload size: {}\nPayload start/end: {:02x?}{:02x?}",
@@ -32,7 +32,7 @@ impl<'a> fmt::Display for uSWID<'a> {
     }
 }
 
-impl<'a> uSWID<'a> {
+impl uSWID {
     pub fn new(data: &[u8]) -> Result<(uSWID, usize), String> {
         let mut i = 16;
 
@@ -43,7 +43,7 @@ impl<'a> uSWID<'a> {
                 let payload_size = u16::from_le_bytes([data[i + 19], data[i + 20]]);
                 let hsz = header_size as usize;
                 let psz = payload_size as usize;
-                let payload = &data[i + hsz..i + hsz + psz];
+                let payload = data[i + hsz..i + hsz + psz].to_vec();
                 return Ok((
                     uSWID {
                         magic: data[i..i + 16].try_into().expect(""),
